@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/samwierema/go-qr-generator.svg?branch=master)](https://travis-ci.org/samwierema/go-qr-generator)
 
-# A QR code generator written in Golang (Echo Framework)
-Starts an HTTP server (listening on port 8080) that generates QR codes. Once installed and running (see below), the service accepts the following two parameters:
+# Echo Golang QR code generator
+Starts an Golang server (listening on port 8080) that generates QR codes. Once installed and running (see below), the service accepts the following two parameters:
 * ```data```: (Required) The (URL encoded) string that should be encoded in the QR code
 * ```size```: (Optional) The size of the image (default: 250)
 
