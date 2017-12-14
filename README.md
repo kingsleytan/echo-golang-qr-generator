@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/samwierema/go-qr-generator.svg?branch=master)](https://travis-ci.org/samwierema/go-qr-generator)
+[![Build Status](https://travis-ci.org/kingsleytan/echo-golang-qr-generator.svg?branch=master)](https://travis-ci.org/kingsleytan/echo-golang-qr-generator)
 
 # Echo Golang QR code generator
 Starts an Golang server (listening on port 8080) that generates QR codes. Once installed and running (see below), the service accepts the following two parameters:
