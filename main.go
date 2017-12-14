@@ -2,43 +2,48 @@ package main
 
 import (
 	"bytes"
-	"github.com/boombuler/barcode"
-	"github.com/boombuler/barcode/qr"
+	"fmt"
 	"image/png"
-	"log"
-	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
+	"github.com/labstack/echo"
 )
 
+// pass in Querystring by http://localhost:8080/?data=1JAQcb8Q2RQXniwX4We1wT6rfAAkBER5tP&size=300
+
 func main() {
-	http.HandleFunc("/", QrGenerator)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	e := echo.New()
+	e.GET("/", QrGenerator)
+	e.Logger.Fatal(e.Start(":8080"))
 }
 
-func QrGenerator(w http.ResponseWriter, r *http.Request) {
-	data := r.URL.Query().Get("data")
+func QrGenerator(c echo.Context) error {
+	fmt.Println("first")
+	data := c.QueryParam("data")
 	if data == "" {
-		http.Error(w, "", http.StatusBadRequest)
-		return
+		return c.JSON(422, map[string]interface{}{
+			"message": "Cannot get data",
+		})
 	}
 
 	s, err := url.QueryUnescape(data)
 	if err != nil {
-		http.Error(w, "", http.StatusBadRequest)
-		return
+		return c.JSON(422, map[string]interface{}{
+			"message": "Cannot get query string",
+		})
 	}
 
 	code, err := qr.Encode(s, qr.L, qr.Auto)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return c.JSON(422, map[string]interface{}{
+			"message": "Cannot generate QR code",
+		})
 	}
 
-	size := r.URL.Query().Get("size")
+	size := c.QueryParam("size")
 	if size == "" {
 		size = "250"
 	}
@@ -50,21 +55,29 @@ func QrGenerator(w http.ResponseWriter, r *http.Request) {
 	// Scale the barcode to the appropriate size
 	code, err = barcode.Scale(code, intsize, intsize)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return c.JSON(422, map[string]interface{}{
+			"message": "Cannot scale the QR code",
+		})
 	}
 
 	buffer := new(bytes.Buffer)
 	if err := png.Encode(buffer, code); err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+		return c.JSON(422, map[string]interface{}{
+			"message": "Cannot encode png",
+		})
 	}
 
-	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+	fmt.Println("last")
+	fmt.Println("code:", code)
 
-	if _, err := w.Write(buffer.Bytes()); err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+	c.Response().Header().Set("Content-Type", "image/png")
+	c.Response().Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+
+	if _, err := c.Response().Write(buffer.Bytes()); err != nil {
+		return c.JSON(422, map[string]interface{}{
+			"message": "Cannot generate QR code png",
+		})
 	}
+
+	return nil
 }
